@@ -25,7 +25,7 @@ type MarathonServer struct {
 type MarathonSubscriber struct {
 	config *MarathonConfig
 	parser MarathonEventsParser
-	buffer chan *MarathonEvent
+	Buffer chan *MarathonEvent
 }
 
 const (
@@ -36,14 +36,14 @@ const (
 func NewMarathonSubscription(config *MarathonConfig, p MarathonEventsParser) chan *MarathonEvent {
 	mes := NewMarathonSubscriber(config, p)
 	go mes.run()
-	return mes.buffer
+	return mes.Buffer
 }
 
 func NewMarathonSubscriber(config *MarathonConfig, p MarathonEventsParser) MarathonSubscriber {
 	return MarathonSubscriber{
 		config: sanitizeConfig(config),
 		parser: p,
-		buffer: make(chan *MarathonEvent, config.BufferSize),
+		Buffer: make(chan *MarathonEvent, config.BufferSize),
 	}
 }
 
@@ -97,7 +97,7 @@ func (mes MarathonSubscriber) MarathonListener(w http.ResponseWriter, r *http.Re
 	defer func() { mes.Unregister() }()
 	event, err := mes.parser.Parse(r.Body, r.RemoteAddr)
 	if err == nil {
-		mes.buffer <- event
+		mes.Buffer <- event
 	}
 }
 

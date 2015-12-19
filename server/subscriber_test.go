@@ -36,7 +36,7 @@ func ExampleHandleEvent() {
 	w := httptest.NewRecorder()
 	subscriber.MarathonListener(w, req)
 
-	event := <-subscriber.buffer
+	event := <-subscriber.Buffer
 
 	fmt.Println(w.Code)
 	fmt.Println(w.Body.String())
