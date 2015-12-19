@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/worker"
 )
 
 func main() {
@@ -12,10 +13,25 @@ func main() {
 		Host:     "localhost",
 		Port:     8080,
 	}
-	subscription := server.NewMarathonSubscription(config, server.MarathonEventsParser{})
+	subscriber := server.NewMarathonSubscriber(config, server.MarathonEventsParser{})
 
-	for {
-		event := <-subscription
-		fmt.Println(event)
-	}
+	taskPattern := "status\\d+"
+	appPattern := "group/.*"
+	fc := worker.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+
+	em := worker.NewEventManager(subscriber.Buffer, []worker.Worker{DummyWorker{}}, []worker.FilterConstraint{fc})
+
+	go func() {
+		for err := range em.Error {
+			fmt.Println("error:", err)
+		}
+	}()
+
+}
+
+type DummyWorker struct{}
+
+func (t DummyWorker) Consume(job *server.MarathonEvent) error {
+	fmt.Println(job)
+	return nil
 }
