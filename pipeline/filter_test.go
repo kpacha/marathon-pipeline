@@ -1,23 +1,21 @@
-package worker
+package pipeline
 
 import (
 	"fmt"
-
-	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 var (
-	filterTestJob1 = &pipeline.MarathonEvent{
+	filterTestJob1 = &MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",
 	}
-	filterTestJob2 = &pipeline.MarathonEvent{
+	filterTestJob2 = &MarathonEvent{
 		Type:   "test2",
 		Status: "status2",
 		ID:     "group/app2",
 	}
-	filterTestJob3 = &pipeline.MarathonEvent{
+	filterTestJob3 = &MarathonEvent{
 		Type:   "test3",
 		Status: "status3",
 		ID:     "app3",
@@ -25,7 +23,7 @@ var (
 )
 
 func ExampleEmptyFilter() {
-	fc := pipeline.FilterConstraint{}
+	fc := FilterConstraint{}
 	f := NewFilter(fc)
 	fmt.Println(filterTestJob1)
 	fmt.Println(f.ShouldConsume(filterTestJob1))
@@ -44,7 +42,7 @@ func ExampleEmptyFilter() {
 
 func ExampleFilterByType() {
 	typePattern := "test1"
-	fc := pipeline.FilterConstraint{EventType: &typePattern}
+	fc := FilterConstraint{EventType: &typePattern}
 	f := NewFilter(fc)
 	fmt.Println(filterTestJob1)
 	fmt.Println(f.ShouldConsume(filterTestJob1))
@@ -64,7 +62,7 @@ func ExampleFilterByType() {
 func ExampleComplexFilter() {
 	taskPattern := "status\\d+"
 	appPattern := "group/.*"
-	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+	fc := FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
 	f := NewFilter(fc)
 	fmt.Println(filterTestJob1)
 	fmt.Println(f.ShouldConsume(filterTestJob1))

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kpacha/marathon-pipeline/marathon"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 	"github.com/kpacha/marathon-pipeline/worker"
 )
 
@@ -25,7 +26,7 @@ func main() {
 
 	taskPattern := "deployment_.*"
 	appPattern := "group/.*"
-	fc := worker.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
 
 	webhook := worker.Webhook{
 		URL:    []string{*slackUrl},
@@ -37,7 +38,7 @@ func main() {
 			}`,
 	}
 
-	em := worker.NewEventManager(subscriber.Buffer, []worker.Worker{webhook}, []worker.FilterConstraint{fc})
+	em := pipeline.NewEventManager(subscriber.Buffer, []pipeline.Worker{webhook}, []pipeline.FilterConstraint{fc})
 
 	go func() {
 		for err := range em.Error {
