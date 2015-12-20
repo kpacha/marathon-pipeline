@@ -25,8 +25,6 @@ func (w Webhook) Consume(job *server.MarathonEvent) error {
 		if err != nil {
 			return err
 		}
-		// ...
-		// req.Header.Add("If-None-Match", `W/"wyzzy"`)
 		resp, err := client.Do(req)
 		if err != nil {
 			return err
