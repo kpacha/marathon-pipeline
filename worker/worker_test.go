@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kpacha/marathon-pipeline/marathon"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 var (
-	emTestJob1 = &marathon.MarathonEvent{
+	emTestJob1 = &pipeline.MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",
 	}
-	emTestJob2 = &marathon.MarathonEvent{
+	emTestJob2 = &pipeline.MarathonEvent{
 		Type:   "test2",
 		Status: "status2",
 		ID:     "group/app2",
 	}
-	emTestJob3 = &marathon.MarathonEvent{
+	emTestJob3 = &pipeline.MarathonEvent{
 		Type:   "test3",
 		Status: "status3",
 		ID:     "app3",
@@ -28,11 +28,11 @@ var (
 func ExampleFilterGeneration() {
 	taskPattern := "status\\d+"
 	appPattern := "group/.*"
-	fc := FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
 
-	input := make(chan *marathon.MarathonEvent)
+	input := make(chan *pipeline.MarathonEvent)
 
-	NewEventManager(input, []Worker{TestWorker{}}, []FilterConstraint{fc})
+	NewEventManager(input, []Worker{TestWorker{}}, []pipeline.FilterConstraint{fc})
 
 	input <- emTestJob3
 	input <- emTestJob3
@@ -53,13 +53,13 @@ func ExampleFilterGeneration() {
 func ExampleErrorHandling() {
 	taskPattern := "status\\d+"
 	appPattern := "group/.*"
-	fc := FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
-	input := make(chan *marathon.MarathonEvent)
+	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+	input := make(chan *pipeline.MarathonEvent)
 
 	em := NewEventManager(
 		input,
 		[]Worker{TestWorker{}, TestWorker2{}},
-		[]FilterConstraint{fc, FilterConstraint{}})
+		[]pipeline.FilterConstraint{fc, pipeline.FilterConstraint{}})
 
 	var errors []error
 	go func() {
@@ -88,13 +88,13 @@ func ExampleErrorHandling() {
 
 type TestWorker struct{}
 
-func (t TestWorker) Consume(job *marathon.MarathonEvent) error {
+func (t TestWorker) Consume(job *pipeline.MarathonEvent) error {
 	fmt.Println(job)
 	return nil
 }
 
 type TestWorker2 struct{}
 
-func (t TestWorker2) Consume(job *marathon.MarathonEvent) error {
+func (t TestWorker2) Consume(job *pipeline.MarathonEvent) error {
 	return fmt.Errorf("TestError: %v", job)
 }

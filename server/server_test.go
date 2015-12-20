@@ -9,12 +9,17 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestServer(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
-	testGinServer := GinServer{9876, gin.Default(), map[string]Job{"supu": Job{Name: "Name to display", ID: "supu"}}}
+	testGinServer := GinServer{
+		Port:   9876,
+		engine: gin.Default(),
+		jobs:   map[string]pipeline.Job{"supu": pipeline.Job{Name: "Name to display", ID: "supu"}},
+	}
 	go func() {
 		testGinServer.Run()
 	}()

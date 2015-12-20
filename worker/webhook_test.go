@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/kpacha/marathon-pipeline/marathon"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 func ExampleWebhookConsume() {
@@ -20,7 +20,7 @@ func ExampleWebhookConsume() {
 		Payload: "{\"message\":\"{{.ID}}: {{.Status}} [{{.Type}}]\"}",
 	}
 
-	job := &marathon.MarathonEvent{
+	job := &pipeline.MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",

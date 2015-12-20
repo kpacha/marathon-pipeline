@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/kpacha/marathon-pipeline/marathon"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 type Webhook struct {
@@ -14,7 +14,7 @@ type Webhook struct {
 	Payload string
 }
 
-func (w Webhook) Consume(job *marathon.MarathonEvent) error {
+func (w Webhook) Consume(job *pipeline.MarathonEvent) error {
 	client := &http.Client{}
 	payload, err := w.parsePayload(job)
 	if err != nil {
@@ -34,7 +34,7 @@ func (w Webhook) Consume(job *marathon.MarathonEvent) error {
 	return nil
 }
 
-func (w Webhook) parsePayload(job *marathon.MarathonEvent) ([]byte, error) {
+func (w Webhook) parsePayload(job *pipeline.MarathonEvent) ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 
 	tmpl, err := template.New("test").Parse(w.Payload)

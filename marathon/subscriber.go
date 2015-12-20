@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 type MarathonConfig struct {
@@ -26,7 +28,7 @@ type MarathonServer struct {
 type MarathonSubscriber struct {
 	config *MarathonConfig
 	parser MarathonEventsParser
-	Buffer chan *MarathonEvent
+	Buffer chan *pipeline.MarathonEvent
 }
 
 const (
@@ -34,7 +36,7 @@ const (
 	defaultCallbackPath = "marathon-listener"
 )
 
-func NewMarathonSubscription(config *MarathonConfig, p MarathonEventsParser) chan *MarathonEvent {
+func NewMarathonSubscription(config *MarathonConfig, p MarathonEventsParser) chan *pipeline.MarathonEvent {
 	mes := NewMarathonSubscriber(config, p)
 	go mes.run()
 	return mes.Buffer
@@ -44,7 +46,7 @@ func NewMarathonSubscriber(config *MarathonConfig, p MarathonEventsParser) Marat
 	return MarathonSubscriber{
 		config: sanitizeConfig(config),
 		parser: p,
-		Buffer: make(chan *MarathonEvent, config.BufferSize),
+		Buffer: make(chan *pipeline.MarathonEvent, config.BufferSize),
 	}
 }
 

@@ -5,24 +5,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kpacha/marathon-pipeline/worker"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
-
-type Job struct {
-	ID     string
-	Name   string
-	Filter *worker.FilterConstraint
-	Params map[string]string
-}
 
 type GinServer struct {
 	Port   int
 	engine *gin.Engine
-	jobs   map[string]Job
+	jobs   map[string]pipeline.Job
 }
 
 func Default(port int) GinServer {
-	return GinServer{port, gin.Default(), map[string]Job{}}
+	return GinServer{port, gin.Default(), map[string]pipeline.Job{}}
 }
 
 func (s *GinServer) Run() {
@@ -30,7 +23,7 @@ func (s *GinServer) Run() {
 		c.JSON(http.StatusOK, s.jobs)
 	})
 	s.engine.POST("", func(c *gin.Context) {
-		var job Job
+		var job pipeline.Job
 		err := c.Bind(&job)
 		if err != nil {
 			c.JSON(

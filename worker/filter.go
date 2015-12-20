@@ -3,26 +3,20 @@ package worker
 import (
 	"regexp"
 
-	"github.com/kpacha/marathon-pipeline/marathon"
+	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
 const wildCard = ".*"
 
-type FilterConstraint struct {
-	EventType  *string
-	TaskStatus *string
-	AppId      *string
-}
-
 type Filter struct {
-	Constraint FilterConstraint
+	Constraint pipeline.FilterConstraint
 }
 
-func NewFilter(f FilterConstraint) *Filter {
+func NewFilter(f pipeline.FilterConstraint) *Filter {
 	return &Filter{f}
 }
 
-func (f *Filter) ShouldConsume(job *marathon.MarathonEvent) bool {
+func (f *Filter) ShouldConsume(job *pipeline.MarathonEvent) bool {
 	return f.check(f.Constraint.EventType, job.Type) &&
 		f.check(f.Constraint.TaskStatus, job.Status) &&
 		f.check(f.Constraint.AppId, job.ID)
