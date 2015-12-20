@@ -18,8 +18,9 @@ type MarathonConfig struct {
 }
 
 type MarathonServer struct {
-	Host string
-	Port int
+	Host         string
+	Port         int
+	subsEndpoint string
 }
 
 type MarathonSubscriber struct {
@@ -57,6 +58,9 @@ func sanitizeConfig(config *MarathonConfig) *MarathonConfig {
 	config.CallbackPath = fmt.Sprintf("/%s", strings.Trim(config.CallbackPath, "/"))
 	config.Host = strings.Trim(config.Host, "/")
 	config.callback = fmt.Sprintf("http://%s:%d%s", config.Host, config.Port, config.CallbackPath)
+	for s, server := range config.Marathon {
+		config.Marathon[s].subsEndpoint = fmt.Sprintf("http://%s:%d/v2/eventSubscriptions", server.Host, server.Port)
+	}
 	return config
 }
 
@@ -70,11 +74,9 @@ func (mes MarathonSubscriber) run() {
 }
 
 func (mes MarathonSubscriber) Register() error {
-	var subsEndpoint string
 	for _, server := range mes.config.Marathon {
-		subsEndpoint = fmt.Sprintf("http://%s:%d/v2/eventSubscriptions", server.Host, server.Port)
-		if !mes.isAlreadyRegistered(subsEndpoint) {
-			if err := mes.registerEndpoint(subsEndpoint); err != nil {
+		if !mes.isAlreadyRegistered(server.subsEndpoint) {
+			if err := mes.registerEndpoint(server.subsEndpoint); err != nil {
 				return err
 			}
 		}
@@ -83,10 +85,8 @@ func (mes MarathonSubscriber) Register() error {
 }
 
 func (mes MarathonSubscriber) Unregister() error {
-	var subsEndpoint string
 	for _, server := range mes.config.Marathon {
-		subsEndpoint = fmt.Sprintf("http://%s:%d/v2/eventSubscriptions", server.Host, server.Port)
-		if err := mes.unregisterEndpoint(subsEndpoint); err != nil {
+		if err := mes.unregisterEndpoint(server.subsEndpoint); err != nil {
 			return err
 		}
 	}
