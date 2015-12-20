@@ -3,22 +3,22 @@ package worker
 import (
 	"fmt"
 
-	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/marathon"
 )
 
 type Worker interface {
-	Consume(job *server.MarathonEvent) error
+	Consume(job *marathon.MarathonEvent) error
 }
 
 type EventManager struct {
-	Job     chan *server.MarathonEvent
+	Job     chan *marathon.MarathonEvent
 	Workers []Worker
 	Filters []FilterConstraint
 	filters []*Filter
 	Error   chan error
 }
 
-func NewEventManager(input chan *server.MarathonEvent, workers []Worker, filters []FilterConstraint) EventManager {
+func NewEventManager(input chan *marathon.MarathonEvent, workers []Worker, filters []FilterConstraint) EventManager {
 	em := EventManager{
 		Job:     input,
 		Workers: workers,
@@ -45,7 +45,7 @@ func (em *EventManager) Run() {
 	}
 }
 
-func (em EventManager) Consume(job *server.MarathonEvent) error {
+func (em EventManager) Consume(job *marathon.MarathonEvent) error {
 	var errors []error
 	for step := range em.Workers {
 		if err := em.consume(job, step); err != nil {
@@ -58,7 +58,7 @@ func (em EventManager) Consume(job *server.MarathonEvent) error {
 	return nil
 }
 
-func (em *EventManager) consume(job *server.MarathonEvent, w int) error {
+func (em *EventManager) consume(job *marathon.MarathonEvent, w int) error {
 	if w > len(em.Workers) {
 		return fmt.Errorf("Worker id out of bounds")
 	}
@@ -68,7 +68,7 @@ func (em *EventManager) consume(job *server.MarathonEvent, w int) error {
 	return nil
 }
 
-func (em *EventManager) shouldConsume(job *server.MarathonEvent, w int) bool {
+func (em *EventManager) shouldConsume(job *marathon.MarathonEvent, w int) bool {
 	if w > len(em.filters) {
 		return false
 	}

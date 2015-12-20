@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/marathon"
 )
 
 var (
-	emTestJob1 = &server.MarathonEvent{
+	emTestJob1 = &marathon.MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",
 	}
-	emTestJob2 = &server.MarathonEvent{
+	emTestJob2 = &marathon.MarathonEvent{
 		Type:   "test2",
 		Status: "status2",
 		ID:     "group/app2",
 	}
-	emTestJob3 = &server.MarathonEvent{
+	emTestJob3 = &marathon.MarathonEvent{
 		Type:   "test3",
 		Status: "status3",
 		ID:     "app3",
@@ -30,7 +30,7 @@ func ExampleFilterGeneration() {
 	appPattern := "group/.*"
 	fc := FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
 
-	input := make(chan *server.MarathonEvent)
+	input := make(chan *marathon.MarathonEvent)
 
 	NewEventManager(input, []Worker{TestWorker{}}, []FilterConstraint{fc})
 
@@ -54,7 +54,7 @@ func ExampleErrorHandling() {
 	taskPattern := "status\\d+"
 	appPattern := "group/.*"
 	fc := FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
-	input := make(chan *server.MarathonEvent)
+	input := make(chan *marathon.MarathonEvent)
 
 	em := NewEventManager(
 		input,
@@ -88,13 +88,13 @@ func ExampleErrorHandling() {
 
 type TestWorker struct{}
 
-func (t TestWorker) Consume(job *server.MarathonEvent) error {
+func (t TestWorker) Consume(job *marathon.MarathonEvent) error {
 	fmt.Println(job)
 	return nil
 }
 
 type TestWorker2 struct{}
 
-func (t TestWorker2) Consume(job *server.MarathonEvent) error {
+func (t TestWorker2) Consume(job *marathon.MarathonEvent) error {
 	return fmt.Errorf("TestError: %v", job)
 }

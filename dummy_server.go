@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/marathon"
 	"github.com/kpacha/marathon-pipeline/worker"
 )
 
@@ -16,12 +16,12 @@ func main() {
 	ttl := flag.Duration("l", 60*time.Second, "time to live of the app")
 	flag.Parse()
 
-	config := &server.MarathonConfig{
-		Marathon: []server.MarathonServer{server.MarathonServer{Host: "marathon.mesos", Port: 8080}},
+	config := &marathon.MarathonConfig{
+		Marathon: []marathon.MarathonServer{marathon.MarathonServer{Host: "marathon.mesos", Port: 8080}},
 		Host:     *host,
 		Port:     *port,
 	}
-	subscriber := server.NewMarathonSubscriber(config, server.MarathonEventsParser{})
+	subscriber := marathon.NewMarathonSubscriber(config, marathon.MarathonEventsParser{})
 
 	taskPattern := "deployment_.*"
 	appPattern := "group/.*"

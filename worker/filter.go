@@ -3,7 +3,7 @@ package worker
 import (
 	"regexp"
 
-	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/marathon"
 )
 
 const wildCard = ".*"
@@ -22,7 +22,7 @@ func NewFilter(f FilterConstraint) *Filter {
 	return &Filter{f}
 }
 
-func (f *Filter) ShouldConsume(job *server.MarathonEvent) bool {
+func (f *Filter) ShouldConsume(job *marathon.MarathonEvent) bool {
 	return f.check(f.Constraint.EventType, job.Type) &&
 		f.check(f.Constraint.TaskStatus, job.Status) &&
 		f.check(f.Constraint.AppId, job.ID)

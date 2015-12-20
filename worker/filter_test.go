@@ -3,21 +3,21 @@ package worker
 import (
 	"fmt"
 
-	"github.com/kpacha/marathon-pipeline/server"
+	"github.com/kpacha/marathon-pipeline/marathon"
 )
 
 var (
-	filterTestJob1 = &server.MarathonEvent{
+	filterTestJob1 = &marathon.MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",
 	}
-	filterTestJob2 = &server.MarathonEvent{
+	filterTestJob2 = &marathon.MarathonEvent{
 		Type:   "test2",
 		Status: "status2",
 		ID:     "group/app2",
 	}
-	filterTestJob3 = &server.MarathonEvent{
+	filterTestJob3 = &marathon.MarathonEvent{
 		Type:   "test3",
 		Status: "status3",
 		ID:     "app3",
