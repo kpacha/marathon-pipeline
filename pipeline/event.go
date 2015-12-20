@@ -10,7 +10,7 @@ type MarathonEvent struct {
 	Node   string
 }
 
-type Job struct {
+type Task struct {
 	ID     string
 	Name   string
 	Filter *FilterConstraint

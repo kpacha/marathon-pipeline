@@ -18,7 +18,7 @@ func TestServer(t *testing.T) {
 	testGinServer := GinServer{
 		Port:   9876,
 		engine: gin.Default(),
-		jobs:   map[string]pipeline.Job{"supu": pipeline.Job{Name: "Name to display", ID: "supu"}},
+		jobs:   map[string]pipeline.Task{"supu": pipeline.Task{Name: "Name to display", ID: "supu"}},
 	}
 	go func() {
 		testGinServer.Run()
@@ -38,7 +38,7 @@ func testServerGetMethods(t *testing.T, gs *gin.Engine) {
 	}{
 		{"/", 200, "{\"supu\":{\"ID\":\"supu\",\"Name\":\"Name to display\",\"Filter\":null,\"Params\":null}}\n"},
 		{"/supu", 200, "{\"ID\":\"supu\",\"Name\":\"Name to display\",\"Filter\":null,\"Params\":null}\n"},
-		{"/unknown", 404, "{\"status\":\"Job not found: unknown\"}\n"},
+		{"/unknown", 404, "{\"status\":\"Task not found: unknown\"}\n"},
 	}
 
 	for _, c := range getCases {
@@ -62,7 +62,7 @@ func testServerPostMethods(t *testing.T, gs *gin.Engine) {
 		{
 			"{\"id\":\"supu\",\"name\":\"\",\"filter\":null,\"params\":null}",
 			400,
-			"{\"status\":\"Job already exists: supu\"}\n",
+			"{\"status\":\"Task already exists: supu\"}\n",
 		},
 		{
 			"{",
@@ -72,7 +72,7 @@ func testServerPostMethods(t *testing.T, gs *gin.Engine) {
 		{
 			"{\"Name\":\"Name to display\"}",
 			400,
-			"{\"status\":\"Error: Job Id must be set!\"}\n",
+			"{\"status\":\"Error: Task Id must be set!\"}\n",
 		},
 	}
 
@@ -90,7 +90,7 @@ func testServerDeleteMethods(t *testing.T, gs *gin.Engine) {
 
 	w = performDeleteRequest(gs, "/new")
 	assert.Equal(t, 404, w.Code)
-	assert.Equal(t, "{\"status\":\"Job not found: new\"}\n", w.Body.String())
+	assert.Equal(t, "{\"status\":\"Task not found: new\"}\n", w.Body.String())
 }
 
 func performRequest(r http.Handler, method, path, payload string) *httptest.ResponseRecorder {

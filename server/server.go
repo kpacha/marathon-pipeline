@@ -11,11 +11,11 @@ import (
 type GinServer struct {
 	Port   int
 	engine *gin.Engine
-	jobs   map[string]pipeline.Job
+	jobs   map[string]pipeline.Task
 }
 
 func Default(port int) GinServer {
-	return GinServer{port, gin.Default(), map[string]pipeline.Job{}}
+	return GinServer{port, gin.Default(), map[string]pipeline.Task{}}
 }
 
 func (s *GinServer) Run() {
@@ -23,7 +23,7 @@ func (s *GinServer) Run() {
 		c.JSON(http.StatusOK, s.jobs)
 	})
 	s.engine.POST("", func(c *gin.Context) {
-		var job pipeline.Job
+		var job pipeline.Task
 		err := c.Bind(&job)
 		if err != nil {
 			c.JSON(
@@ -32,11 +32,11 @@ func (s *GinServer) Run() {
 			return
 		}
 		if job.ID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "Error: Job Id must be set!"})
+			c.JSON(http.StatusBadRequest, gin.H{"status": "Error: Task Id must be set!"})
 			return
 		}
 		if _, ok := s.jobs[job.ID]; ok {
-			c.JSON(http.StatusBadRequest, gin.H{"status": fmt.Sprintf("Job already exists: %s", job.ID)})
+			c.JSON(http.StatusBadRequest, gin.H{"status": fmt.Sprintf("Task already exists: %s", job.ID)})
 			return
 		}
 		s.jobs[job.ID] = job
@@ -47,7 +47,7 @@ func (s *GinServer) Run() {
 		if j, ok := s.jobs[jobId]; ok {
 			c.JSON(http.StatusOK, j)
 		} else {
-			c.JSON(http.StatusNotFound, gin.H{"status": fmt.Sprintf("Job not found: %s", jobId)})
+			c.JSON(http.StatusNotFound, gin.H{"status": fmt.Sprintf("Task not found: %s", jobId)})
 		}
 	})
 	s.engine.DELETE("/:jobId", func(c *gin.Context) {
@@ -56,7 +56,7 @@ func (s *GinServer) Run() {
 			delete(s.jobs, jobId)
 			c.JSON(http.StatusOK, gin.H{"status": "ok"})
 		} else {
-			c.JSON(http.StatusNotFound, gin.H{"status": fmt.Sprintf("Job not found: %s", jobId)})
+			c.JSON(http.StatusNotFound, gin.H{"status": fmt.Sprintf("Task not found: %s", jobId)})
 		}
 	})
 	s.engine.Run(fmt.Sprintf(":%d", s.Port))
