@@ -1,4 +1,8 @@
-all: build test
+all: deps build test
+
+deps:
+	go get -v github.com/gin-gonic/gin
+	go get -v github.com/stretchr/testify/assert
 
 gen:
 	go fmt ./...
