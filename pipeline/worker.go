@@ -9,19 +9,19 @@ type Worker interface {
 }
 
 type EventManager struct {
-	Job     chan *MarathonEvent
-	Workers []Worker
-	Filters []FilterConstraint
-	filters []*Filter
-	Error   chan error
+	EventStream chan *MarathonEvent
+	Workers     []Worker
+	Filters     []FilterConstraint
+	filters     []*Filter
+	Error       chan error
 }
 
 func NewEventManager(input chan *MarathonEvent, workers []Worker, filters []FilterConstraint) EventManager {
 	em := EventManager{
-		Job:     input,
-		Workers: workers,
-		Filters: filters,
-		Error:   make(chan error, 1000),
+		EventStream: input,
+		Workers:     workers,
+		Filters:     filters,
+		Error:       make(chan error, 1000),
 	}
 	em.Build()
 	go em.Run()
@@ -36,7 +36,7 @@ func (em *EventManager) Build() {
 
 func (em *EventManager) Run() {
 	for {
-		job := <-em.Job
+		job := <-em.EventStream
 		if err := em.Consume(job); err != nil {
 			em.Error <- err
 		}
