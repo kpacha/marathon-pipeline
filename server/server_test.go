@@ -15,10 +15,13 @@ import (
 
 func TestServer(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
+	taskStore := pipeline.MemoryTaskStore{
+		Store: map[string]pipeline.Task{"supu": pipeline.Task{Name: "Name to display", ID: "supu"}},
+	}
 	testGinServer := GinServer{
-		Port:   9876,
-		engine: gin.Default(),
-		jobs:   map[string]pipeline.Task{"supu": pipeline.Task{Name: "Name to display", ID: "supu"}},
+		Port:      9876,
+		engine:    gin.Default(),
+		taskStore: taskStore,
 	}
 	go func() {
 		testGinServer.Run()
