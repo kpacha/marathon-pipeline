@@ -91,10 +91,8 @@ func TestMemoryTaskStore_Delete(t *testing.T) {
 }
 
 func newMemoryTaskStore(snapshot map[string]Task) (MemoryTaskStore, TaskStoreSubscription, error) {
-	store := MemoryTaskStore{
-		Store:         snapshot,
-		Subscriptions: &[]TaskStoreSubscription{},
-	}
+	store := NewMemoryTaskStore()
+	store.Store = snapshot
 	subscription, err := store.Subscribe()
 	return store, subscription, err
 }
