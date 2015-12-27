@@ -78,7 +78,6 @@ func TestMemoryTaskStore_Delete(t *testing.T) {
 
 	select {
 	case snapshot := <-subscription.SnapshotStream:
-		assert.Equal(t, initialSnapshot, snapshot)
 		assert.Equal(t, map[string]Task{}, snapshot)
 	case <-time.After(5 * time.Millisecond):
 		t.Error("timeout waiting for the snapshot after a delete")
@@ -90,9 +89,36 @@ func TestMemoryTaskStore_Delete(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
+func TestMemoryTaskStore_Overwrite(t *testing.T) {
+	task := Task{Name: "Name to display", ID: "supu"}
+	expectedSnapshot := map[string]Task{task.ID: task}
+	store, subscription, err := newMemoryTaskStore(map[string]Task{})
+	assert.Equal(t, nil, err)
+
+	receivedTask, ok, err := store.Get(task.ID)
+	assert.Equal(t, Task{}, receivedTask)
+	assert.Equal(t, false, ok)
+	assert.Equal(t, nil, err)
+
+	err = store.Overwrite(expectedSnapshot)
+	assert.Equal(t, nil, err)
+
+	select {
+	case snapshot := <-subscription.SnapshotStream:
+		assert.Equal(t, expectedSnapshot, snapshot)
+	case <-time.After(5 * time.Millisecond):
+		t.Error("timeout waiting for the snapshot after an overwrite")
+	}
+
+	receivedTask, ok, err = store.Get(task.ID)
+	assert.Equal(t, expectedSnapshot[task.ID], receivedTask)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, nil, err)
+}
+
 func newMemoryTaskStore(snapshot map[string]Task) (MemoryTaskStore, TaskStoreSubscription, error) {
 	store := NewMemoryTaskStore()
-	store.Store = snapshot
+	store.Store = &snapshot
 	subscription, err := store.Subscribe()
 	return store, subscription, err
 }

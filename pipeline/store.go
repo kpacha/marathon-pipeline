@@ -7,38 +7,52 @@ type TaskStore interface {
 	Get(k string) (Task, bool, error)
 	Set(t Task) error
 	Delete(k string) error
+}
+
+type Subscribable interface {
 	Subscribe() (TaskStoreSubscription, error)
 }
 
+type SubscribableTaskStore interface {
+	TaskStore
+	Subscribable
+}
+
 type MemoryTaskStore struct {
-	Store  map[string]Task
+	Store  *map[string]Task
 	mailer *TaskStoreSubscriptionHandler
 }
 
 func NewMemoryTaskStore() MemoryTaskStore {
 	return MemoryTaskStore{
-		Store:  map[string]Task{},
+		Store:  &map[string]Task{},
 		mailer: NewTaskStoreSubscriptionHandler(),
 	}
 }
 
 func (m MemoryTaskStore) GetAll() (map[string]Task, error) {
-	return m.Store, nil
+	return *m.Store, nil
 }
 
 func (m MemoryTaskStore) Get(k string) (Task, bool, error) {
-	v, ok := m.Store[k]
+	v, ok := (*m.Store)[k]
 	return v, ok, nil
 }
 
 func (m MemoryTaskStore) Set(t Task) error {
-	m.Store[t.ID] = t
+	(*m.Store)[t.ID] = t
+	m.notifySubscriptors()
+	return nil
+}
+
+func (m MemoryTaskStore) Overwrite(snapshot map[string]Task) error {
+	*(m.Store) = snapshot
 	m.notifySubscriptors()
 	return nil
 }
 
 func (m MemoryTaskStore) Delete(k string) error {
-	delete(m.Store, k)
+	delete(*m.Store, k)
 	m.notifySubscriptors()
 	return nil
 }
@@ -54,7 +68,7 @@ func (m MemoryTaskStore) notifySubscriptors() {
 	if m.mailer == nil {
 		return
 	}
-	m.mailer.notifySubscriptors(m.Store)
+	m.mailer.NotifySubscriptors(*m.Store)
 }
 
 type TaskStoreSubscription struct {
@@ -79,7 +93,7 @@ func (sh TaskStoreSubscriptionHandler) Subscribe() (TaskStoreSubscription, error
 	return susbscription, nil
 }
 
-func (sh TaskStoreSubscriptionHandler) notifySubscriptors(snapshot map[string]Task) {
+func (sh TaskStoreSubscriptionHandler) NotifySubscriptors(snapshot map[string]Task) {
 	if sh.Subscriptions == nil {
 		return
 	}
