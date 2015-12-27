@@ -1,8 +1,9 @@
 all: deps build test
 
 deps:
-	go get -v github.com/gin-gonic/gin
-	go get -v github.com/stretchr/testify/assert
+	go get -u github.com/gin-gonic/gin
+	go get -u github.com/stretchr/testify/assert
+	go get -u github.com/samuel/go-zookeeper/zk
 
 gen:
 	go fmt ./...
