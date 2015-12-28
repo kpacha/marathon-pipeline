@@ -52,7 +52,7 @@ func TestMemoryTaskStore_Set(t *testing.T) {
 	select {
 	case snapshot := <-subscription.SnapshotStream:
 		assert.Equal(t, expectedSnapshot, snapshot)
-	case <-time.After(5 * time.Millisecond):
+	case <-time.After(10 * time.Millisecond):
 		t.Error("timeout waiting for the snapshot after a set")
 	}
 
@@ -79,7 +79,7 @@ func TestMemoryTaskStore_Delete(t *testing.T) {
 	select {
 	case snapshot := <-subscription.SnapshotStream:
 		assert.Equal(t, map[string]Task{}, snapshot)
-	case <-time.After(5 * time.Millisecond):
+	case <-time.After(10 * time.Millisecond):
 		t.Error("timeout waiting for the snapshot after a delete")
 	}
 
@@ -106,7 +106,7 @@ func TestMemoryTaskStore_Overwrite(t *testing.T) {
 	select {
 	case snapshot := <-subscription.SnapshotStream:
 		assert.Equal(t, expectedSnapshot, snapshot)
-	case <-time.After(5 * time.Millisecond):
+	case <-time.After(10 * time.Millisecond):
 		t.Error("timeout waiting for the snapshot after an overwrite")
 	}
 
