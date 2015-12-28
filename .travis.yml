@@ -21,3 +21,4 @@ before_install:
   - echo "clientPort=2181" >> conf/zoo.cfg
   - echo "dataDir=${DATADIR}" >> conf/zoo.cfg
   - bin/zkServer.sh start &
+  - cd ..
