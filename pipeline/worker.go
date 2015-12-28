@@ -8,6 +8,10 @@ type Worker interface {
 	Consume(job *MarathonEvent) error
 }
 
+type WorkerFactory interface {
+	Build(task Task) (*Worker, error)
+}
+
 type EventManager struct {
 	EventStream chan *MarathonEvent
 	Workers     []Worker
