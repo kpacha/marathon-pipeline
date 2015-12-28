@@ -27,9 +27,11 @@ func main() {
 	}
 	subscriber := marathon.NewMarathonSubscriber(config, marathon.MarathonEventsParser{})
 
-	workerFactory := pipeline.ProxyWorkerFactory{map[string]pipeline.WorkerFactory{
-		"webhook": worker.WebhookFactory{},
-	}}
+	workerFactory := pipeline.ProxyWorkerFactory{
+		Factories: map[string]pipeline.WorkerFactory{
+			"webhook": worker.WebhookFactory{},
+		},
+	}
 	zk, err := zookeeper.NewZKMemoryTaskStore([]string{*zkHost})
 	if err != nil {
 		fmt.Println("Error:", err.Error())
