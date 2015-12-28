@@ -7,41 +7,41 @@ import (
 
 	"github.com/kpacha/marathon-pipeline/marathon"
 	"github.com/kpacha/marathon-pipeline/pipeline"
+	"github.com/kpacha/marathon-pipeline/server"
 	"github.com/kpacha/marathon-pipeline/worker"
+	"github.com/kpacha/marathon-pipeline/zookeeper"
 )
 
 func main() {
-	slackUrl := flag.String("s", "", "slack url")
+	zkHost := flag.String("zk", "locahost:2181", "hostname")
 	host := flag.String("h", "locahost", "hostname")
-	port := flag.Int("p", 8080, "port")
+	listenerPort := flag.Int("e", 8081, "listener port")
+	restPort := flag.Int("p", 8080, "rest API port")
 	ttl := flag.Duration("l", 60*time.Second, "time to live of the app")
 	flag.Parse()
 
 	config := &marathon.MarathonConfig{
 		Marathon: []marathon.MarathonServer{marathon.MarathonServer{Host: "marathon.mesos", Port: 8080}},
 		Host:     *host,
-		Port:     *port,
+		Port:     *listenerPort,
 	}
 	subscriber := marathon.NewMarathonSubscriber(config, marathon.MarathonEventsParser{})
 
-	taskPattern := "deployment_.*"
-	appPattern := "group/.*"
-	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
+	workerFactory := pipeline.ProxyWorkerFactory{map[string]pipeline.WorkerFactory{
+		"webhook": worker.WebhookFactory{},
+	}}
+	zk, err := zookeeper.NewZKMemoryTaskStore([]string{*zkHost})
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return
+	}
+	manager := pipeline.NewManager(workerFactory, &zk, subscriber.Buffer)
 
-	webhook := pipeline.NewWorkerWrapper(worker.Webhook{
-		URL:    []string{*slackUrl},
-		Method: "POST",
-		Payload: `payload={
-				"username": "new-bot-name",
-				"icon_emoji": ":robot_face:".
-				"text": "{{.ID}}: {{.Type}} [{{.Status}} at {{.Node}}].\n<http://marathon.mesos:8080/v2/apps/{{.ID}}|Click here> for details!"
-			}`,
-	}, &fc)
-
-	dispatcher := pipeline.NewDispatcher(subscriber.Buffer, []pipeline.Worker{webhook})
+	restServer := server.Default(*restPort, zk)
+	go restServer.Run()
 
 	go func() {
-		for err := range dispatcher.Error {
+		for err := range manager.Error {
 			fmt.Println("error:", err)
 		}
 	}()

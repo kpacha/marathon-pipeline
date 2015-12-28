@@ -1,6 +1,10 @@
 package zookeeper
 
-import "github.com/kpacha/marathon-pipeline/pipeline"
+import (
+	"fmt"
+
+	"github.com/kpacha/marathon-pipeline/pipeline"
+)
 
 type ZKMemoryTaskStore struct {
 	mem    *pipeline.TaskStore
@@ -8,7 +12,11 @@ type ZKMemoryTaskStore struct {
 	remote pipeline.TaskStoreSubscription
 }
 
-func NewZKMemoryTaskStore(zks []string) (ZKMemoryTaskStore, error) {
+func NewZKMemoryTaskStore(zks []string) (pipeline.TaskStore, error) {
+	return newZKMemoryTaskStore(zks)
+}
+
+func newZKMemoryTaskStore(zks []string) (ZKMemoryTaskStore, error) {
 	mem := pipeline.NewMemoryTaskStore()
 	zk, err := NewZKTaskStore(zks)
 	if err != nil {
@@ -41,6 +49,10 @@ func (zkm ZKMemoryTaskStore) Delete(k string) error {
 
 func (zkm ZKMemoryTaskStore) Subscribe() (pipeline.TaskStoreSubscription, error) {
 	return (*zkm.mem).Subscribe()
+}
+
+func (zkm ZKMemoryTaskStore) Overwrite(snapshot map[string]pipeline.Task) error {
+	return fmt.Errorf("ZKMemoryTaskStore: operation overwrite is not yet implemented")
 }
 
 func (zkm ZKMemoryTaskStore) init() error {

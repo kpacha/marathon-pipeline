@@ -31,7 +31,7 @@ type WorkerFactory interface {
 }
 
 type ProxyWorkerFactory struct {
-	factories map[string]WorkerFactory
+	Factories map[string]WorkerFactory
 }
 
 func (pf ProxyWorkerFactory) Build(task Task) (Worker, error) {
@@ -39,7 +39,7 @@ func (pf ProxyWorkerFactory) Build(task Task) (Worker, error) {
 	if !ok {
 		return nil, fmt.Errorf("ProxyWorkerFactory: undefined param worker")
 	}
-	f, ok := pf.factories[name]
+	f, ok := pf.Factories[name]
 	if !ok {
 		return nil, fmt.Errorf("ProxyWorkerFactory: factory not defined for workers of the type [%s]", name)
 	}
