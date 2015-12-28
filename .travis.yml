@@ -1,4 +1,4 @@
-sudo: true
+sudo: false
 
 language: go
 
@@ -9,7 +9,5 @@ go:
   - 1.4
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y zookeeper-server
-  - sudo service zookeeper-server init
-  - sudo service zookeeper-server start
+  - wget http://apache.claz.org/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+  - tar -zxvf zookeeper*tar.gz
