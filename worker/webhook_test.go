@@ -14,25 +14,40 @@ func ExampleWebhookConsume() {
 	ts := creteTestServer("ok")
 	defer ts.Close()
 
-	webhook := Webhook{
-		URL:     []string{fmt.Sprintf("%s/some-uri", ts.URL)},
-		Method:  "GET",
-		Payload: "{\"message\":\"{{.ID}}: {{.Status}} [{{.Type}}]\"}",
+	eventType := "deployment_.*"
+	appId := "group/.*"
+	task := pipeline.Task{
+		ID:   "id",
+		Name: "name",
+		Params: map[string]string{
+			"worker":  "webhook",
+			"method":  "POST",
+			"url":     fmt.Sprintf("%s/some-uri", ts.URL),
+			"payload": `payload={"text": "{{.ID}}: {{.Type}} [{{.Status}} at {{.Node}}]."}`,
+		},
+		Filter: &pipeline.FilterConstraint{
+			EventType: &eventType,
+			AppId:     &appId,
+		},
 	}
+	webhookFactory := WebhookFactory{}
+	webhook, err := webhookFactory.Build(task)
+	fmt.Println(err)
 
 	job := &pipeline.MarathonEvent{
 		Type:   "test1",
 		Status: "status1",
 		ID:     "group/app1",
+		Node:   "someNode",
 	}
-	if err := webhook.Consume(job); err != nil {
-		panic(err)
-	}
+	fmt.Println(webhook.Consume(job))
 
 	// Output:
-	// GET
+	// <nil>
+	// POST
 	// /some-uri
-	// {"message":"group/app1: status1 [test1]"}
+	// payload={"text": "group/app1: test1 [status1 at someNode]."}
+	// <nil>
 }
 
 func creteTestServer(msg string) *httptest.Server {
