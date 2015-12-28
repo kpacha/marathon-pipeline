@@ -11,7 +11,7 @@ func ExampleZKMemoryTaskStore_GetAll() {
 	testingRootPath := fmt.Sprintf("%s-testing", rootPath)
 	rootPath = testingRootPath
 
-	store, err := NewZKMemoryTaskStore([]string{"192.168.99.100:2181"})
+	store, err := NewZKMemoryTaskStore([]string{"localhost:2181"})
 	fmt.Println(err)
 
 	task1 := pipeline.Task{

@@ -12,7 +12,7 @@ func ExampleZKTaskStore() {
 	testingRootPath := fmt.Sprintf("%s-testing", rootPath)
 	rootPath = testingRootPath
 
-	store, err := NewZKTaskStore([]string{"192.168.99.100:2181"})
+	store, err := NewZKTaskStore([]string{"localhost:2181"})
 	fmt.Println(err)
 
 	task1 := pipeline.Task{
