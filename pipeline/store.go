@@ -7,15 +7,8 @@ type TaskStore interface {
 	Get(k string) (Task, bool, error)
 	Set(t Task) error
 	Delete(k string) error
-}
-
-type Subscribable interface {
+	Overwrite(snapshot map[string]Task) error
 	Subscribe() (TaskStoreSubscription, error)
-}
-
-type SubscribableTaskStore interface {
-	TaskStore
-	Subscribable
 }
 
 type MemoryTaskStore struct {
@@ -23,7 +16,7 @@ type MemoryTaskStore struct {
 	mailer *TaskStoreSubscriptionHandler
 }
 
-func NewMemoryTaskStore() MemoryTaskStore {
+func NewMemoryTaskStore() TaskStore {
 	return MemoryTaskStore{
 		Store:  &map[string]Task{},
 		mailer: NewTaskStoreSubscriptionHandler(),

@@ -116,9 +116,11 @@ func TestMemoryTaskStore_Overwrite(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-func newMemoryTaskStore(snapshot map[string]Task) (MemoryTaskStore, TaskStoreSubscription, error) {
-	store := NewMemoryTaskStore()
-	store.Store = &snapshot
+func newMemoryTaskStore(snapshot map[string]Task) (TaskStore, TaskStoreSubscription, error) {
+	store := MemoryTaskStore{
+		Store:  &snapshot,
+		mailer: NewTaskStoreSubscriptionHandler(),
+	}
 	subscription, err := store.Subscribe()
 	return store, subscription, err
 }

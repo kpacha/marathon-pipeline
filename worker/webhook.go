@@ -2,6 +2,7 @@ package worker
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -44,4 +45,26 @@ func (w Webhook) parsePayload(job *pipeline.MarathonEvent) ([]byte, error) {
 	err = tmpl.Execute(buf, job)
 
 	return buf.Bytes(), nil
+}
+
+type WebhookFactory struct{}
+
+func (f WebhookFactory) Build(task pipeline.Task) (pipeline.Worker, error) {
+	url, ok := task.Params["url"]
+	if !ok {
+		return nil, fmt.Errorf("WebhookFactory: undefined url")
+	}
+	method, ok := task.Params["method"]
+	if !ok {
+		return nil, fmt.Errorf("WebhookFactory: undefined method")
+	}
+	payload, ok := task.Params["payload"]
+	if !ok {
+		return nil, fmt.Errorf("WebhookFactory: undefined payload")
+	}
+	return Webhook{
+		URL:     []string{url},
+		Method:  method,
+		Payload: payload,
+	}, nil
 }

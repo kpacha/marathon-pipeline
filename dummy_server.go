@@ -28,7 +28,7 @@ func main() {
 	appPattern := "group/.*"
 	fc := pipeline.FilterConstraint{TaskStatus: &taskPattern, AppId: &appPattern}
 
-	webhook := worker.Webhook{
+	webhook := pipeline.NewWorkerWrapper(worker.Webhook{
 		URL:    []string{*slackUrl},
 		Method: "POST",
 		Payload: `payload={
@@ -36,12 +36,12 @@ func main() {
 				"icon_emoji": ":robot_face:".
 				"text": "{{.ID}}: {{.Type}} [{{.Status}} at {{.Node}}].\n<http://marathon.mesos:8080/v2/apps/{{.ID}}|Click here> for details!"
 			}`,
-	}
+	}, &fc)
 
-	em := pipeline.NewEventManager(subscriber.Buffer, []pipeline.Worker{webhook}, []pipeline.FilterConstraint{fc})
+	dispatcher := pipeline.NewDispatcher(subscriber.Buffer, []pipeline.Worker{webhook})
 
 	go func() {
-		for err := range em.Error {
+		for err := range dispatcher.Error {
 			fmt.Println("error:", err)
 		}
 	}()

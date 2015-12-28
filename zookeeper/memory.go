@@ -3,7 +3,7 @@ package zookeeper
 import "github.com/kpacha/marathon-pipeline/pipeline"
 
 type ZKMemoryTaskStore struct {
-	mem    *pipeline.MemoryTaskStore
+	mem    *pipeline.TaskStore
 	zk     *ZKTaskStore
 	remote pipeline.TaskStoreSubscription
 }
@@ -24,11 +24,11 @@ func NewZKMemoryTaskStore(zks []string) (ZKMemoryTaskStore, error) {
 }
 
 func (zkm ZKMemoryTaskStore) GetAll() (map[string]pipeline.Task, error) {
-	return zkm.mem.GetAll()
+	return (*zkm.mem).GetAll()
 }
 
 func (zkm ZKMemoryTaskStore) Get(k string) (pipeline.Task, bool, error) {
-	return zkm.mem.Get(k)
+	return (*zkm.mem).Get(k)
 }
 
 func (zkm ZKMemoryTaskStore) Set(t pipeline.Task) error {
@@ -40,12 +40,12 @@ func (zkm ZKMemoryTaskStore) Delete(k string) error {
 }
 
 func (zkm ZKMemoryTaskStore) Subscribe() (pipeline.TaskStoreSubscription, error) {
-	return zkm.mem.Subscribe()
+	return (*zkm.mem).Subscribe()
 }
 
 func (zkm ZKMemoryTaskStore) init() error {
 	if snapshot, err := zkm.zk.GetAll(); err == nil {
-		zkm.mem.Overwrite(snapshot)
+		(*zkm.mem).Overwrite(snapshot)
 	}
 	go zkm.handleUpdates()
 	return nil
@@ -54,6 +54,6 @@ func (zkm ZKMemoryTaskStore) init() error {
 func (zkm ZKMemoryTaskStore) handleUpdates() {
 	for {
 		snapshot := <-zkm.remote.SnapshotStream
-		zkm.mem.Overwrite(snapshot)
+		(*zkm.mem).Overwrite(snapshot)
 	}
 }

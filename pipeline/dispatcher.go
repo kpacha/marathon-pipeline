@@ -1,56 +1,40 @@
 package pipeline
 
-import (
-	"fmt"
-)
-
-type Worker interface {
-	Consume(job *MarathonEvent) error
+type Dispatcher struct {
+	EventStream  chan *MarathonEvent
+	workers      *[]Worker
+	Error        chan error
+	workerStream chan []Worker
 }
 
-type WorkerFactory interface {
-	Build(task Task) (*Worker, error)
-}
-
-type EventManager struct {
-	EventStream chan *MarathonEvent
-	Workers     []Worker
-	Filters     []FilterConstraint
-	filters     []*Filter
-	Error       chan error
-}
-
-func NewEventManager(input chan *MarathonEvent, workers []Worker, filters []FilterConstraint) EventManager {
-	em := EventManager{
-		EventStream: input,
-		Workers:     workers,
-		Filters:     filters,
-		Error:       make(chan error, 1000),
+func NewDispatcher(input chan *MarathonEvent, workers []Worker) *Dispatcher {
+	d := Dispatcher{
+		EventStream:  input,
+		workers:      &workers,
+		Error:        make(chan error, 1000),
+		workerStream: make(chan []Worker),
 	}
-	em.Build()
-	go em.Run()
-	return em
+	go d.Run()
+	return &d
 }
 
-func (em *EventManager) Build() {
-	for _, f := range em.Filters {
-		em.filters = append(em.filters, NewFilter(f))
-	}
-}
-
-func (em *EventManager) Run() {
+func (d *Dispatcher) Run() {
 	for {
-		job := <-em.EventStream
-		if err := em.Consume(job); err != nil {
-			em.Error <- err
+		select {
+		case job := <-d.EventStream:
+			if err := d.consume(job); err != nil {
+				d.Error <- err
+			}
+		case workers := <-d.workerStream:
+			*d.workers = workers
 		}
 	}
 }
 
-func (em EventManager) Consume(job *MarathonEvent) error {
+func (d *Dispatcher) consume(job *MarathonEvent) error {
 	var errors []error
-	for step := range em.Workers {
-		if err := em.consume(job, step); err != nil {
+	for _, w := range *d.workers {
+		if err := w.Consume(job); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -60,19 +44,7 @@ func (em EventManager) Consume(job *MarathonEvent) error {
 	return nil
 }
 
-func (em *EventManager) consume(job *MarathonEvent, w int) error {
-	if w > len(em.Workers) {
-		return fmt.Errorf("Worker id out of bounds")
-	}
-	if em.shouldConsume(job, w) {
-		return em.Workers[w].Consume(job)
-	}
+func (d Dispatcher) Consume(job *MarathonEvent) error {
+	d.EventStream <- job
 	return nil
-}
-
-func (em *EventManager) shouldConsume(job *MarathonEvent, w int) bool {
-	if w > len(em.filters) {
-		return false
-	}
-	return em.filters[w].ShouldConsume(job)
 }
