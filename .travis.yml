@@ -9,9 +9,10 @@ go:
   - 1.4
 
 before_install:
-  - wget http://apache.claz.org/zookeeper/zookeeper-3.4.7/zookeeper-3.4.7.tar.gz
+  - ZK_VERSION=3.4.7
+  - wget http://apache.claz.org/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz
   - tar -zxvf zookeeper*tar.gz
-  - cd zookeeper*tar.gz
+  - cd zookeeper-${ZK_VERSION}
   - DATADIR="${PWD}/datadir"
   - mkdir -p ${DATADIR}
   - mkdir -p conf
