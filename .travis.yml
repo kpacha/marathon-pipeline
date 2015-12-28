@@ -9,5 +9,14 @@ go:
   - 1.4
 
 before_install:
-  - wget http://apache.claz.org/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+  - wget http://apache.claz.org/zookeeper/zookeeper-3.4.7/zookeeper-3.4.7.tar.gz
   - tar -zxvf zookeeper*tar.gz
+  - cd zookeeper*tar.gz
+  - DATADIR="${PWD}/datadir"
+  - mkdir -p ${DATADIR}
+  - mkdir -p conf
+  - |
+  echo "tickTime=2000
+	dataDir=${DATADIR}
+	clientPort=2181" > conf/zoo.cfg
+  - bin/zkServer.sh start &
