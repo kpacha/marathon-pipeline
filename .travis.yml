@@ -15,8 +15,8 @@ before_install:
   - DATADIR="${PWD}/datadir"
   - mkdir -p ${DATADIR}
   - mkdir -p conf
-  - |
-    echo "tickTime=2000
-	  dataDir=${DATADIR}
-	  clientPort=2181" > conf/zoo.cfg
+  - touch conf/zoo.cfg
+  - echo "tickTime=2000" >> conf/zoo.cfg
+  - echo "clientPort=2181" >> conf/zoo.cfg
+  - echo "dataDir=${DATADIR}" >> conf/zoo.cfg
   - bin/zkServer.sh start &
