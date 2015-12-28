@@ -20,27 +20,14 @@ func main() {
 	ttl := flag.Duration("l", 60*time.Second, "time to live of the app")
 	flag.Parse()
 
-	config := &marathon.MarathonConfig{
-		Marathon: []marathon.MarathonServer{marathon.MarathonServer{Host: "marathon.mesos", Port: 8080}},
-		Host:     *host,
-		Port:     *listenerPort,
-	}
-	subscriber := marathon.NewMarathonSubscriber(config, marathon.MarathonEventsParser{})
+	subscriber := geteventSubscriber(*host, *listenerPort)
+	defer subscriber.Unregister()
 
-	workerFactory := pipeline.ProxyWorkerFactory{
-		Factories: map[string]pipeline.WorkerFactory{
-			"webhook": worker.WebhookFactory{},
-		},
-	}
-	zk, err := zookeeper.NewZKMemoryTaskStore([]string{*zkHost})
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		return
-	}
-	manager := pipeline.NewManager(workerFactory, &zk, subscriber.Buffer)
+	zk := startZK(*zkHost)
 
-	restServer := server.Default(*restPort, zk)
-	go restServer.Run()
+	manager := pipeline.NewManager(initWorkerFactory(), &zk, subscriber.Buffer)
+
+	startRestServer(*restPort, zk)
 
 	go func() {
 		for err := range manager.Error {
@@ -49,5 +36,34 @@ func main() {
 	}()
 
 	time.Sleep(*ttl)
-	subscriber.Unregister()
+}
+
+func geteventSubscriber(host string, port int) marathon.MarathonSubscriber {
+	config := &marathon.MarathonConfig{
+		Marathon: []marathon.MarathonServer{marathon.MarathonServer{Host: "marathon.mesos", Port: 8080}},
+		Host:     host,
+		Port:     port,
+	}
+	return marathon.NewMarathonSubscriber(config, marathon.MarathonEventsParser{})
+}
+
+func startZK(zkHost string) pipeline.TaskStore {
+	zk, err := zookeeper.NewZKMemoryTaskStore([]string{zkHost})
+	if err != nil {
+		panic(err.Error())
+	}
+	return zk
+}
+
+func startRestServer(port int, store pipeline.TaskStore) {
+	restServer := server.Default(port, store)
+	go restServer.Run()
+}
+
+func initWorkerFactory() pipeline.WorkerFactory {
+	return pipeline.ProxyWorkerFactory{
+		Factories: map[string]pipeline.WorkerFactory{
+			"webhook": worker.WebhookFactory{},
+		},
+	}
 }
