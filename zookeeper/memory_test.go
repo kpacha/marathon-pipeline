@@ -7,7 +7,7 @@ import (
 	"github.com/kpacha/marathon-pipeline/pipeline"
 )
 
-func ExampleZKMemoryTaskStore_GetAll() {
+func ExampleZKMemoryTaskStore() {
 	testingRootPath := fmt.Sprintf("%s-testing", rootPath)
 	rootPath = testingRootPath
 
@@ -29,8 +29,6 @@ func ExampleZKMemoryTaskStore_GetAll() {
 		Name:   "name3",
 		Params: map[string]string{},
 	}
-
-	store.zk.conn.Create(testingRootPath, []byte{}, int32(0), store.zk.acl)
 
 	subscription, err2 := store.Subscribe()
 	fmt.Println(err2)

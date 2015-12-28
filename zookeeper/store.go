@@ -29,7 +29,7 @@ func NewZKTaskStore(zks []string) (ZKTaskStore, error) {
 		rootPath: rootPath,
 		mailer:   pipeline.NewTaskStoreSubscriptionHandler(),
 	}
-	go store.advertise()
+	store.init()
 	return store, nil
 }
 
@@ -82,6 +82,21 @@ func (zkStore ZKTaskStore) Subscribe() (pipeline.TaskStoreSubscription, error) {
 
 func (zkStore ZKTaskStore) path(k string) string {
 	return fmt.Sprintf("%s/%s", zkStore.rootPath, k)
+}
+
+func (zkStore ZKTaskStore) init() error {
+	_, _, err := zkStore.conn.Get(zkStore.rootPath)
+	if err != nil {
+		if err == zk.ErrNoNode {
+			if _, err = zkStore.conn.Create(zkStore.rootPath, []byte{}, int32(0), zkStore.acl); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	go zkStore.advertise()
+	return nil
 }
 
 func (zkStore ZKTaskStore) advertise() {
